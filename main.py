@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, render_template, url_for
 from flask_cors import CORS
 from database import *
+from pandas import DataFrame
 
 app = Flask(__name__, template_folder='frontend', static_folder="frontend")
 CORS(app, resources={
@@ -15,14 +16,12 @@ CORS(app, resources={
 @app.route("/")
 def main():
     css_url = url_for("static", filename="style.css")
-    print(css_url)
     return render_template("index.html",
                            css_url=css_url)
 
 @app.route("/autorith")
 def authorization():
     css_url = url_for("static", filename="authstyle.css")
-    print(css_url)
     return render_template("autorith.html",
                            css_url=css_url)
 
@@ -40,6 +39,23 @@ def authorization_proccess():
 
     return jsonify({'status': status})
 
+
+@app.route('/api/anomalies', methods=["POST"])
+def find_anomailes():
+    data : str = request.json["csvDATA"]
+    lines = data.split("\n")
+    labels = lines[0].split(",")
+    values = [[elem.split(",")[i].strip() for elem in lines[1:]] for i in range(len(labels))]
+
+    csvData = {labels[i].strip(): values[i] for i in range(len(labels))}
+
+    csvDF = DataFrame(csvData)
+
+    # TODO
+    # подставьте сюда ml-функцию
+
+
+    # return jsonify({'dataset': dataset, "labels": label})
 
 if __name__ == '__main__':
     app.run(debug=True)
