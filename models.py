@@ -11,7 +11,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     auth_date = Column(String, default=datetime.datetime.utcnow)
-    username = Column(String, nullable=False)
+    username = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
 
 class Activities(Base):
