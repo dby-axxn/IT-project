@@ -1,0 +1,327 @@
+:root {
+    --spacing-unit: 1rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+/* Basic Reset */
+body, h1, h2, p, ul {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif; /* Adjust as needed */
+    line-height: 1.6;
+    color: #333; /* Adjust as needed */
+    background-color: #fff; /* Adjust as needed */
+}
+
+a {
+    text-decoration: none;
+    color: #ff6b00; /* Adjust as needed */
+}
+
+ul {
+    list-style: none;
+}
+
+/* Reusable Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header */
+.header {
+    background-color: #fff;
+    padding: 20px 0;
+    position: relative;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 50px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff6b00;
+}
+
+.nav ul {
+    display: flex;
+    font-size: 18px;
+}
+
+.nav li {
+    margin-left: 30px;
+}
+
+.nav a {
+    color: #ff6b00;
+}
+
+.button {
+    background-color: #ff6b00;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Hero Section */
+.hero {
+    text-align: center; /* Center the content in the hero */
+}
+
+.hero-logo {
+    position: absolute;
+    top: 350px;
+    left: 50px;
+}
+
+.hero-title {
+    font-size: 150px; /* Adjust as needed */
+    font-weight: bolder;
+    color: rgba(0, 0, 0, 0.1); /* Adjust as needed for faded effect */
+    margin-bottom: 10px; /* Add some space below the title */
+    text-align: center;
+    margin: 0;
+}
+
+.hero-title .name,
+.hero-title .company {
+    display: block; /* Each word on a new line */
+}
+
+.hero-date {
+    font-size: 36px; /* Adjust as needed */
+    color: rgba(0, 0, 0, 0.1); /* Adjust as needed for faded effect */
+    margin-bottom: 20px; /* Add some space below the date */
+    text-align: center;
+}
+
+/* Main Content Section */
+.main-content {
+    display: grid;
+    /*grid-template-columns: 1fr 1fr 1fr;*/
+    gap: 20px; /* Adjust as needed */
+    padding: 0 calc(var(--spacing-unit) * 2);
+    width: 100%;
+    margin-top: 50px;
+}
+
+.main-content__title {
+    color: var(--primary-color);
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    font-size: calc(var(--spacing-unit) * 2);
+}
+
+.main-content__text {
+    line-height: 1.8;
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.text-left h2 {
+    color: #ff6b00;
+    font-size: 46px;
+    margin-bottom: 15px;
+    margin-left: -40px;
+    width: 500px;
+}
+
+/*.underline {*/
+/*    display: inline-block;*/
+/*    width: 80px; !* Adjust line width as needed *!*/
+/*    height: 4px; !* Adjust line thickness as needed *!*/
+/*    background-color: #ff6b00;*/
+/*    margin-left: 5px; !* Position the line slightly *!*/
+/*}*/
+
+/*.text-right p {*/
+/*    font-size: 16px;*/
+/*    color: #666; !* Adjust text color as needed *!*/
+/*    margin-bottom: 10px; !* Space between paragraphs *!*/
+/*    margin-left: 200px;*/
+/*    width: 500px;*/
+/*}*/
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Стили для секции с кнопкой (CTA - Call to Action) */
+.cta-section {
+    background-color: #ffffff; /* Задайте цвет фона для секции */
+    padding: 50px 0; /* Увеличьте отступы сверху и снизу */
+    text-align: center; /* Центрируйте текст */
+    width: 100%;
+    border-radius: 8px;
+}
+
+.cta-section h2 {
+    font-size: 32px; /* Увеличьте размер заголовка */
+    margin-bottom: 20px; /* Добавьте отступ снизу */
+}
+
+.cta-section p {
+    font-size: 18px; /* Увеличьте размер параграфа */
+    margin-bottom: 30px; /* Добавьте отступ снизу */
+}
+
+/* Стили для большой кнопки */
+.big-button {
+    background-color: #ff6b00; /* Задайте оранжевый цвет фона */
+    color: #fff; /* Задайте белый цвет текста */
+    font-size: 24px; /* Увеличьте размер шрифта */
+    padding: 15px 40px; /* Увеличьте отступы */
+    border: none; /* Уберите рамку */
+    border-radius: 5px; /* Скруглите углы */
+    text-decoration: none; /* Уберите подчеркивание у ссылки */
+    font-weight: bold; /* Сделайте текст жирным */
+    display: inline-block; /* Важно для padding и width */
+    transition: background-color 0.3s ease; /* Плавное изменение цвета фона */
+    /* Добавляем следующие строки: */
+    display: block; /* Делаем блочным элементом */
+    width: fit-content; /* Устанавливаем ширину по содержимому */
+    margin: 0 auto; /* Центрируем кнопку */
+}
+
+.big-button:hover {
+    background-color: #ff8000; /* Измените цвет фона при наведении */
+}
+
+.big-button:focus {
+    outline: 2px solid #ffd700; /* Добавьте обводку при фокусе */
+    outline-offset: 2px;
+}
+
+/* Секция команды */
+.team {
+    background-color: #f5f5f5;
+    padding: calc(var(--spacing-unit) * 4) 0;
+}
+
+.team__title {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    font-size: 30px;
+}
+
+.team__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: calc(var(--spacing-unit) * 2);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 calc(var(--spacing-unit) * 2);
+}
+
+.team__member {
+    position: relative;
+    background-color: white;
+    padding: calc(var(--spacing-unit) * 2);
+    border-radius: 8px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+/*.team__member-image {*/
+/*    display: none;*/
+/*    position: absolute;*/
+/*    top: -100px;*/
+/*    left: 50%;*/
+/*    transform: translateX(-50%);*/
+/*    width: 100px;*/
+/*    height: 100px;*/
+/*    border-radius: 50%;*/
+/*    box-shadow: 0 2px 8px rgba(0,0,0,0.1);*/
+/*}*/
+
+/*.team__member:hover .team__member-image {*/
+/*    display: block;*/
+/*}*/
+
+.team__member:hover {
+    transform: translateY(-5px);
+}
+
+.team__member img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: calc(var(--spacing-unit));
+}
+
+.team__member h3 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+    font-size: 21px;
+}
+
+.team__member p {
+    color: #666;
+    font-size: 15px;
+}
+
+/* Медиа-запросы */
+@media (max-width: 768px) {
+    .team__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: calc(var(--spacing-unit) * 2);
+    }
+}
+
+
+
+
+/*.orange-button {*/
+/*    background-color: #ff6b00;        !* Задаем оранжевый фон *!*/
+/*    color: white;                    !* Делаем текст белым для контраста *!*/
+/*    font-size: 20px;                 !* Увеличиваем размер шрифта (можно настроить) *!*/
+/*    padding: 15px 30px;              !* Добавляем внутренние отступы (можно настроить) *!*/
+/*    border: none;                    !* Убираем рамку *!*/
+/*    border-radius: 5px;              !* Скругляем углы (можно настроить) *!*/
+/*    cursor: pointer;                 !* Меняем курсор на "руку" при наведении *!*/
+/*    font-weight: bold;              !* Делаем шрифт жирным *!*/
+/*    text-transform: uppercase;       !* Преобразуем текст в верхний регистр (необязательно) *!*/
+/*    transition: background-color 0.3s ease; !* Добавляем плавный переход цвета *!*/
+/*    display: inline-block;          !* Важно для правильной работы padding и margin *!*/
+/*    text-decoration: none;          !* Убираем подчеркивание (если используется с <a>) *!*/
+/*}*/
+
+/*.orange-button:hover {*/
+/*    background-color: #e67300;      !* Меняем цвет фона при наведении (можно настроить) *!*/
+/*}*/
+
+/*.orange-button:focus {           !* Добавляем стиль для фокуса (для доступности) *!*/
+/*    outline: 2px solid #ffd700;      !* Добавляем яркую обводку при фокусе *!*/
+/*    outline-offset: 2px;           !* Сдвигаем обводку от края кнопки *!*/
+/*}*/
