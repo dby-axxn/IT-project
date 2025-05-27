@@ -2,18 +2,18 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>CSV Загрузчик</title>
+    <title>CSV Загрузчик и Анализатор</title>
     <style>
+        /* Твои стили остаются здесь */
         body {
             font-family: Arial, sans-serif;
-            /*max-width: 800px;*/
             margin: 20px auto;
             padding: 20px;
         }
         .container {
             background-color: #f9f9f9;
             padding: 20px;
-            height: 600px;
+            /* height: 600px; Убрал фиксированную высоту, чтобы контент мог расширяться */
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             color: #ff6b00;
@@ -38,11 +38,12 @@
         #fileInput {
             display: none;
         }
-        #preview {
+        #preview, #resultsArea { /* Добавил #resultsArea */
             margin-top: 15px;
             padding: 10px;
             background-color: white;
             border-radius: 4px;
+            text-align: left; /* Для лучшего отображения результатов */
         }
         .preview-table {
             width: 100%;
@@ -59,75 +60,223 @@
             background-color: #f4f4f4;
         }
         .big-button {
-            background-color: #ff6b00; /* Задайте оранжевый цвет фона */
-            color: #fff; /* Задайте белый цвет текста */
-            font-size: 20px; /* Увеличьте размер шрифта */
-            padding: 15px 40px; /* Увеличьте отступы */
-            border: none; /* Уберите рамку */
-            border-radius: 5px; /* Скруглите углы */
-            text-decoration: none; /* Уберите подчеркивание у ссылки */
-            font-weight: bold; /* Сделайте текст жирным */
-            display: inline-block; /* Важно для padding и width */
-            transition: background-color 0.3s ease; /* Плавное изменение цвета фона */
-            /* Добавляем следующие строки: */
-            display: block; /* Делаем блочным элементом */
-            width: fit-content; /* Устанавливаем ширину по содержимому */
-            margin: 0 auto; /* Центрируем кнопку */
+            background-color: #ff6b00;
+            color: #fff;
+            font-size: 20px;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            width: fit-content;
+            margin: 10px auto; /* Добавил немного отступа */
+            cursor: pointer; /* Для кнопки */
+        }
+        #analyzeButton { /* Стиль для кнопки "Проанализировать" */
+            display: none; /* Сначала скрыта */
+        }
+        #statusMessage { /* Для сообщений о статусе/ошибках */
+            margin-top: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>Загрузка CSV файла</h2>
+    <h2>Загрузка и анализ CSV файла</h2>
 
     <div
             class="upload-area"
+            id="uploadArea"
             onclick="document.getElementById('fileInput').click()"
     >
-        <p>Перетащите файл сюда или кликните для выбора</p>
+        <p id="uploadText">Перетащите файл сюда или кликните для выбора</p>
         <input type="file" id="fileInput" accept=".csv" style="display: none" />
     </div>
-    <a href="filepage.html" class="big-button">Проанализировать!</a>
+
     <div id="preview"></div>
+    <div id="statusMessage"></div>
+
+    <!-- Убрал ссылку, сделал кнопкой, которая будет вызывать функцию analyzeData -->
+    <button id="analyzeButton" class="big-button">Проанализировать!</button>
+
+    <div id="resultsArea"></div> <!-- Область для вывода результатов -->
+
 </div>
 
 <script>
-    document
-        .getElementById("fileInput")
-        .addEventListener("change", function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
+    let csvFileContent = null; // Глобальная переменная для хранения содержимого CSV
 
-                reader.onload = function (event) {
-                    const csvData = event.target.result;
-                    const lines = csvData.split("\n");
+    const fileInput = document.getElementById("fileInput");
+    const previewDiv = document.getElementById("preview");
+    const analyzeButton = document.getElementById("analyzeButton");
+    const uploadArea = document.getElementById("uploadArea");
+    const uploadText = document.getElementById("uploadText");
+    const resultsArea = document.getElementById("resultsArea");
+    const statusMessage = document.getElementById("statusMessage");
 
-                    // Создаем таблицу с данными
-                    let tableHTML = '<table class="preview-table">';
-                    tableHTML += `<tr>${lines[0]
+
+    fileInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        statusMessage.textContent = ''; // Очищаем предыдущие сообщения
+        resultsArea.innerHTML = '';    // Очищаем предыдущие результаты
+        csvFileContent = null;         // Сбрасываем содержимое файла
+        analyzeButton.style.display = "none"; // Скрываем кнопку
+
+        if (file && file.type === "text/csv") {
+            uploadText.textContent = `Выбран файл: ${file.name}`;
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                csvFileContent = event.target.result; // Сохраняем содержимое файла
+                const lines = csvFileContent.split("\\n").slice(0, 6); // Первые 6 строк для превью
+
+                let tableHTML = '<table class="preview-table">';
+                if (lines.length > 0 && lines[0].trim() !== "") {
+                    tableHTML += `<thead><tr>${lines[0]
                         .split(",")
                         .map((cell) => `<th>${cell.trim()}</th>`)
-                        .join("")}</tr>`;
-
-                    // Добавляем первые 5 строк данных
-                    for (let i = 1; i < Math.min(lines.length, 6); i++) {
+                        .join("")}</tr></thead>`;
+                    
+                    tableHTML += '<tbody>';
+                    for (let i = 1; i < lines.length; i++) {
+                        if (lines[i].trim() === "") continue; // Пропускаем пустые строки
                         tableHTML += `<tr>${lines[i]
                             .split(",")
                             .map((cell) => `<td>${cell.trim()}</td>`)
                             .join("")}</tr>`;
                     }
+                    tableHTML += '</tbody>';
+                } else {
+                    tableHTML += "<tr><td>Файл пуст или неверный формат заголовка.</td></tr>";
+                }
+                tableHTML += "</table>";
+                previewDiv.innerHTML = `
+                    <h3>Предпросмотр данных (первые строки):</h3>
+                    ${tableHTML}
+                `;
+                analyzeButton.style.display = "block"; // Показываем кнопку после загрузки файла
+            };
 
-                    tableHTML += "</table>";
-                    document.getElementById("preview").innerHTML = `
-                        <h3>Предпросмотр данных:</h3>
-                        ${tableHTML}
-                    `;
-                };
-
-                reader.readAsText(file);
+            reader.onerror = function() {
+                previewDiv.innerHTML = "<p style='color: red;'>Ошибка при чтении файла.</p>";
+                csvFileContent = null;
             }
-        });
+
+            reader.readAsText(file);
+        } else if (file) {
+            previewDiv.innerHTML = "<p style='color: red;'>Пожалуйста, выберите CSV файл.</p>";
+            uploadText.textContent = "Перетащите файл сюда или кликните для выбора";
+        }
+    });
+
+    analyzeButton.addEventListener("click", async function() {
+        if (!csvFileContent) {
+            statusMessage.textContent = "Сначала загрузите CSV файл.";
+            statusMessage.style.color = "red";
+            return;
+        }
+
+        statusMessage.textContent = "Идет анализ данных...";
+        statusMessage.style.color = "orange";
+        resultsArea.innerHTML = ''; // Очищаем предыдущие результаты
+
+        try {
+            const response = await fetch('/api/anomalies', { // URL вашего Flask API
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ csvDATA: csvFileContent }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({error: "Не удалось получить детали ошибки с сервера."}));
+                throw new Error(`Ошибка сервера: ${response.status}. ${errorData.error || ''}`);
+            }
+
+            const data = await response.json();
+            statusMessage.textContent = "Анализ завершен!";
+            statusMessage.style.color = "green";
+            displayResults(data);
+
+            // Если нужно перенаправить на filepage.html и передать данные (сложнее):
+            // localStorage.setItem('analysisResults', JSON.stringify(data));
+            // window.location.href = 'filepage.html';
+
+        } catch (error) {
+            console.error('Ошибка при отправке данных:', error);
+            statusMessage.textContent = `Ошибка: ${error.message}`;
+            statusMessage.style.color = "red";
+        }
+    });
+
+    function displayResults(data) {
+        let html = "<h3>Результаты анализа:</h3>";
+
+        if (data.error) {
+            html += `<p style="color: red;">Ошибка: ${data.error}</p>`;
+        } else if (data.message && data.anomalies_detected.length === 0 && data.all_points_processed.length === 0) {
+             html += `<p>${data.message}</p>`;
+        }
+        else {
+            html += "<p><strong>Сводка:</strong></p><ul>";
+            html += `<li>Всего обработано точек: ${data.summary.total_points_evaluated}</li>`;
+            html += `<li>Всего найдено аномалий: ${data.summary.total_anomalies}</li>`;
+            html += `<li>Аномалий по MSE: ${data.summary.anomalies_by_mse}</li>`;
+            html += `<li>Аномалий по низкой активности: ${data.summary.anomalies_by_low_activity}</li>`;
+            html += "</ul>";
+
+            if (data.anomalies_detected && data.anomalies_detected.length > 0) {
+                html += "<p><strong>Обнаруженные аномалии:</strong></p>";
+                html += '<table class="preview-table"><thead><tr><th>Timestamp</th><th>Actual Value</th><th>Predicted Value</th><th>MSE</th><th>Type</th></tr></thead><tbody>';
+                data.anomalies_detected.forEach(anomaly => {
+                    let type = [];
+                    if (anomaly.is_anomaly_mse) type.push("MSE");
+                    if (anomaly.is_anomaly_low) type.push("Low Activity");
+                    html += `<tr>
+                        <td>${anomaly.timestamp}</td>
+                        <td>${anomaly.actual.toFixed(2)}</td>
+                        <td>${anomaly.prediction.toFixed(2)}</td>
+                        <td>${anomaly.mse.toFixed(4)}</td>
+                        <td>${type.join(", ")}</td>
+                    </tr>`;
+                });
+                html += "</tbody></table>";
+            } else {
+                html += "<p>Аномалий не обнаружено.</p>";
+            }
+
+            // По желанию, можно отобразить график на filepage.html или здесь же
+            // Если на filepage.html, то данные нужно передать (см. localStorage выше)
+            // Для отображения здесь, нужно будет создать canvas и использовать Chart.js
+            // как в filepage.html, но передать data.all_points_processed
+        }
+        resultsArea.innerHTML = html;
+    }
+
+    // Для drag and drop (опционально, но улучшает UX)
+    uploadArea.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        uploadArea.style.borderColor = "#666";
+    });
+    uploadArea.addEventListener("dragleave", function(event) {
+        event.preventDefault();
+        uploadArea.style.borderColor = "#ccc";
+    });
+    uploadArea.addEventListener("drop", function(event) {
+        event.preventDefault();
+        uploadArea.style.borderColor = "#ccc";
+        if (event.dataTransfer.files.length) {
+            fileInput.files = event.dataTransfer.files;
+            // Инициировать событие change для fileInput, чтобы сработал его обработчик
+            const changeEvent = new Event('change');
+            fileInput.dispatchEvent(changeEvent);
+        }
+    });
+
 </script>
 </body>
 </html>
