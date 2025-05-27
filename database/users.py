@@ -1,45 +1,47 @@
 from sqlalchemy import *
-from .controller import Session, engine
-from models import User
-import time
-import datetime
+from .controller import Session, engine 
+from models import User 
+import datetime 
 
 def get_user(
-    username : str = None,
-    id : str = None,
-    _session = Session) -> User | None:
+    email: str = None, 
+    id: int = None,    
+    _session = Session
+) -> User | None:
 
-    users = select(User)
+    query = select(User)
 
-    if username is not None:
-        users = users.where(User.username == str(username))
+    if email is not None:
+        query = query.where(User.email == str(email)) 
 
     if id is not None:
-        users = users.where(User.id == id)
+        query = query.where(User.id == id)
 
     try:
-        result = list(_session.scalars(users))
-    except:
-        Session.rollback()
-        result = list(_session.scalars(users))
+        result_user = _session.execute(query).scalars().first()
+    except Exception as e: 
+        _session.rollback()
+        print(f"Error fetching user: {e}") 
+        return None # 
 
-    if len(result) == 0:
-        return None
-
-    return result[0]
+    return result_user 
 
 def add_user(
-    username : str,
-    password : str
+    email: str,
+    password: str
 ) -> User:
     user = User(
-        username = username,
-        password = password,
+        email=email, 
+        password=password,
     )
 
     Session.add(user)
-    Session.commit()
-
+    try:
+        Session.commit()
+    except Exception as e: 
+        Session.rollback()
+        print(f"Error adding user: {e}") 
+        raise e 
 
     return user
 

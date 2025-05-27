@@ -5,10 +5,11 @@ from ml.anomaly_detector import detect_anomalies_in_df, MODEL_LOADED_SUCCESSFULL
 import io
 import pandas as pd
 import numpy as np
+
 app = Flask(__name__, template_folder='frontend', static_folder="frontend")
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://127.0.0.1:5000", "http://localhost:5000"],
+        "origins": ["http://127.0.0.1:5000", "http://localhost:5000", "http://localhost:5173", "http://127.0.0.1:5173"],
         "methods": ["GET", "POST", "PUT", "DELETE"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
@@ -27,26 +28,58 @@ def authorization():
     return render_template("autorith.html",
                            css_url=css_url)
 
+@app.route("/registration")
+def registration_page():
+    css_url = url_for("static", filename="regstyle.css") 
+    return render_template("registration.html",
+                           css_url=css_url)
+
 
 @app.route('/api/auth/login', methods=["POST"])
 def authorization_proccess():
     data = request.json
-    user = get_user(data["email"])
+    email = data.get("email") # Получаем email из запроса
+    password = data.get("password")
 
-    if user is None or user["password"] != data["password"]:
+    if not email or not password:
+        return jsonify({'status': "Missing email or password"}), 400
+
+    user = get_user(email=email) # Поиск пользователя по email
+
+    if user is None or user.password != password: # Сравнение пароля
         status = "Incorrect password or login"
     else:
         status = "Correct"
-
-
     return jsonify({'status': status})
 
-@app.route("/analiswindow") # Имя файла без .html
+
+@app.route('/api/auth/register', methods=['POST'])
+def register_user_proccess():
+    data = request.json
+    # username_from_form = data.get('username') # Если ты собираешь display_name
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password: # Проверка только email и password, если username не для логина
+        return jsonify({"message": "Missing email or password"}), 400
+
+    if get_user(email=email): # Проверка по email
+        return jsonify({"message": "User with this email already exists"}), 409
+
+    try:
+        new_user = add_user(email=email, password=password) # Добавление по email
+        # Если есть display_name:
+        # new_user = add_user(email=email, password=password, display_name=username_from_form)
+        return jsonify({"message": "User registered successfully", "user_id": new_user.id}), 201
+        
+    except Exception as e:
+        app.logger.error(f"Error during registration: {e}")
+        return jsonify({"message": "An error occurred during registration"}), 500
+
+
+@app.route("/analiswindow")
 def analis_window_page():
-    # Если для этой страницы нужен свой CSS-файл, передай его так же
-    # css_url = url_for("static", filename="analiswindow_style.css")
-    # return render_template("analiswindow.html", css_url=css_url)
-    return render_template("analiswindow.html") # Если стили внутри <style> или не нужны отдельные
+    return render_template("analiswindow.html")
 
 
 @app.route('/api/anomalies', methods=["POST"])

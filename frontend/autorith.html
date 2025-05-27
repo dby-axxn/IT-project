@@ -14,12 +14,12 @@
   <form class="auth-form" id="authForm">
     <div class="form-group">
       <label for="email">Email</label>
-      <input type="email" id="email" required>
+      <input type="email" id="email" name="email" required> 
     </div>
 
     <div class="form-group">
       <label for="password">Пароль</label>
-      <input type="password" id="password" required>
+      <input type="password" id="password" name="password" required> 
     </div>
 
     <div class="form-actions">
@@ -28,26 +28,48 @@
     </div>
 
     <div class="register-link">
-      <a href="#">Ещё нет аккаунта? Зарегистрироваться</a>
+      <a href="{{ url_for('registration_page') }}">Ещё нет аккаунта? Зарегистрироваться</a>
     </div>
   </form>
 </div>
 
 <script>
-  // JavaScript для обработки формы
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() { 
     const authForm = document.getElementById('authForm');
 
-    authForm.addEventListener('submit', function(e) {
+    authForm.addEventListener('submit', async function(e) { 
       e.preventDefault();
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim(); 
       const password = document.getElementById('password').value;
 
-      // Здесь должна быть логика отправки данных на сервер
-      console.log('Авторизация:', { email, password });
+      try {
+        const response = await fetch('/api/auth/login', { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password })
+        });
 
-      // После успешной авторизации перенаправить на главную страницу
-      // location.href = '/';
+        const data = await response.json(); 
+
+        if (!response.ok) {
+            alert(data.status || data.message || `Ошибка авторизации: ${response.status}`);
+            return; 
+        }
+
+        // Проверяем статус из ответа сервера
+        if (data.status === "Correct") {
+            alert('Авторизация успешна!');
+            window.location.href = '/analiswindow'; 
+        } else {
+            alert(data.status || 'Неверный логин или пароль.'); 
+        }
+
+      } catch (error) {
+        console.error('Ошибка при отправке запроса:', error);
+        alert('Произошла ошибка при попытке входа. Пожалуйста, попробуйте позже.');
+      }
     });
   });
 </script>
