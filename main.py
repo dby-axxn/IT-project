@@ -41,6 +41,13 @@ def authorization_proccess():
 
     return jsonify({'status': status})
 
+@app.route("/analiswindow") # Имя файла без .html
+def analis_window_page():
+    # Если для этой страницы нужен свой CSS-файл, передай его так же
+    # css_url = url_for("static", filename="analiswindow_style.css")
+    # return render_template("analiswindow.html", css_url=css_url)
+    return render_template("analiswindow.html") # Если стили внутри <style> или не нужны отдельные
+
 
 @app.route('/api/anomalies', methods=["POST"])
 def find_anomalies_route():
