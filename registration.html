@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="css/regstyle.css">
+</head>
+<body>
+
+<div class="reg-container">
+    <h2 class="reg-title">Регистрация</h2>
+
+    <form class="reg-form" id="registrationForm" method="post">
+        <div class="form-group">
+            <label for="username">Имя пользователя</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password"
+                   pattern="(?=.*\d)(?=.*[a-zA-Z]).{8,}"
+                   title="Не менее 8 символов, включая буквы и цифры" required>
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Подтвердите пароль</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Зарегистрироваться</button>
+        </div>
+
+        <div class="auth-link">
+            <a href="autorith.html">Уже есть аккаунт? Войти</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const registrationForm = document.getElementById('registrationForm');
+
+        registrationForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Валидация паролей
+            if (password !== confirmPassword) {
+                alert('Пароли не совпадают');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Ошибка регистрации');
+                }
+
+                const data = await response.json();
+                alert('Регистрация успешна!');
+                // Перенаправление на страницу входа
+                window.location.href = 'autorith.html';
+            } catch (error) {
+                console.error('Ошибка:', error.message);
+                alert(error.message);
+            }
+        });
+    });
+</script>
+</body>
+</html>

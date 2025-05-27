@@ -1,0 +1,115 @@
+:root {
+    --primary-color: #ff6b00;
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --spacing-unit: 1rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Контейнер формы */
+.reg-container {
+    background-color: white;
+    padding: calc(var(--spacing-unit) * 2.5);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Заголовок */
+.reg-title {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
+/* Форма */
+.reg-form {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing-unit) * 1.5);
+}
+
+/* Группы полей */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.form-group input {
+    padding: calc(var(--spacing-unit) * 0.75);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+/* Кнопки */
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing-unit) * 1);
+    margin-top: calc(var(--spacing-unit) * 2);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: calc(var(--spacing-unit) * 0.75);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #ff4d00;
+}
+
+.forgot-password {
+    text-align: center;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+/* Ссылка на регистрацию */
+.auth-link {
+    text-align: center;
+    margin-top: calc(var(--spacing-unit) * 1.5);
+}
+
+.auth-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Медиа-запросы */
+@media (max-width: 480px) {
+    .reg-container {
+        padding: calc(var(--spacing-unit) * 1.5);
+    }
+}
