@@ -12,7 +12,8 @@ export function setupCounter(element) {
   const setCounter = value => {
     counter = adjustCounterValue(value);
     //TIP WebStorm has lots of inspections to help you catch issues in your project. It also has quick fixes to help you resolve them. Press <shortcut actionId="ShowIntentionActions"/> on <shortcut raw="text"/> and choose <b>Inline variable</b> to clean up the redundant code.
-    element.innerHTML = `${counter}`;
+    const text = `${counter}`;
+    element.innerHTML = text;
   };
 
   document.getElementById('increaseByOne').addEventListener('click', () => setCounter(counter + 1));
