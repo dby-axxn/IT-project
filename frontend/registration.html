@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация</title>
-    <link rel="stylesheet" href="css/regstyle.css">
+    <link rel="stylesheet" href="{{ css_url }}">
 </head>
 <body>
 
@@ -39,7 +39,7 @@
         </div>
 
         <div class="auth-link">
-            <a href="autorith.html">Уже есть аккаунт? Войти</a>
+            <a href="{{ url_for('authorization') }}">Уже есть аккаунт? Войти</a>
         </div>
     </form>
 </div>
@@ -56,7 +56,7 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
-            // Валидация паролей
+            // passwd validation
             if (password !== confirmPassword) {
                 alert('Пароли не совпадают');
                 return;
@@ -82,8 +82,7 @@
 
                 const data = await response.json();
                 alert('Регистрация успешна!');
-                // Перенаправление на страницу входа
-                window.location.href = 'autorith.html';
+                window.location.href = '/analiswindow'
             } catch (error) {
                 console.error('Ошибка:', error.message);
                 alert(error.message);
