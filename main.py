@@ -1,159 +1,126 @@
-import sqlite3
+from flask import Flask, jsonify, request, render_template, url_for
+from flask_cors import CORS
+from database import *
+from ml.anomaly_detector import detect_anomalies_in_df, MODEL_LOADED_SUCCESSFULLY
+import io
+import pandas as pd
+import numpy as np
+app = Flask(__name__, template_folder='frontend', static_folder="frontend")
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://127.0.0.1:5000", "http://localhost:5000"],
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 
-def prepare_database() -> None:
-    '''Функция создаёт основные таблицы программы: \n 
-    activities - таблица содержит информацию о количестве запросов на каждый день \n
-    anomalies - таблица содержит аномалии с их типом и датой'''
-
-
-    conn = sqlite3.connect('numbers.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS activities (
-        day INTEGER PRIMARY KEY,
-        requests_cnt INTEGER
-    ) ''')
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS anomalies (
-        id INTEGER PRIMARY KEY,
-        anomaly_type BOOLEAN,
-        day INTEGER
-    ) ''')
-    conn.commit()
-    conn.close()
-
-def create_monthly_tables() -> None:
-    '''Функция создаёт вспомогательные таблицы программы: \n 
-    monthly_activities - таблица содержит информацию о колиечстве запросов на каждый месяц \n
-    monthly_anomalies - таблица содержит аномалии с их типом и датой'''
-    conn = sqlite3.connect('numbers.db')
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS monthly_activities (
-        day INTEGER PRIMARY KEY,
-        requests_cnt INTEGER
-    ) ''')
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS monthly_anomalies (
-        id INTEGER PRIMARY KEY,
-        anomaly_type BOOLEAN,
-        month INTEGER
-    ) ''')
-    conn.commit()
-    conn.close()
-
-def table_empty(table_name : str) -> bool:
-    '''Проверка, пуста ли таблица'''
-    # Подключаемся к базе данных
-    conn = sqlite3.connect('numbers.db')
-    cursor = conn.cursor()
-    
-    # Выполняем SQL-запрос для подсчета строк в таблице
-    cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-    row_count = cursor.fetchone()[0]
-    conn.close()
-    return (row_count == 0)
-
-def get_acivities_from_dataset(url : str) -> list[int]:
-    '''Получение массива с количеством активностей на каждом временном промежутке 
-    (ежедневно или ежемесячно) заданного сайта'''
-    return [0]
-
-def find_amonalies(activities : list[int]):
-    '''Основной алгоритм нахождения аномалий'''
-    return [[False, 0]]
-
-def insert_activs_into_db(numbers):
-    '''Занесение массива с количеством ежедневных запросов на сайт в базу данных'''
-    # Подключаемся к базе данных (если она не существует, она будет создана)
-    conn = sqlite3.connect('numbers.db')
-    cursor = conn.cursor()
-    # Вставляем данные в таблицу
-    for key, value in enumerate(numbers):
-        if 0 <= key <= 354:  # Проверяем, чтобы ключ был в нужном диапазоне
-            cursor.execute(f'''
-            INSERT OR REPLACE INTO activities (day, requests_cnt) VALUES (?, ?)''', (key, value))
-    # Сохраняем изменения и закрываем соединение
-    conn.commit()
-    conn.close()
-
-def insert_montly_activs_into_db(numbers):
-    '''Занесение массива с количеством ежемесячных запросов на сайт в базу данных'''
-    # Подключаемся к базе данных (если она не существует, она будет создана)
-    conn = sqlite3.connect('numbers.db')
-    cursor = conn.cursor()
-    # Вставляем данные в таблицу
-    for key, value in enumerate(numbers):
-        if 0 <= key <= 11:  # Проверяем, чтобы ключ был в нужном диапазоне
-            cursor.execute(f'''
-            INSERT OR REPLACE INTO monthly_activities (month, requests_cnt) VALUES (?, ?)''', (key, value))
-    # Сохраняем изменения и закрываем соединение
-    conn.commit()
-    conn.close()
-
-def insert_anoms_into_db(numbers):
-    '''Занесение массива с ежедневными аномалиями в базу данных'''
-    # Подключаемся к базе данных (если она не существует, она будет создана)
-    conn = sqlite3.connect('numbers.db')
-    cursor = conn.cursor()
-    # Вставляем данные в таблицу
-    for key, value in enumerate(numbers):
-        if 0 <= key <= 354:  # Проверяем, чтобы ключ был в нужном диапазоне
-            cursor.execute(f'''
-            INSERT OR REPLACE INTO anomalies (id, anomaly_type, day) VALUES (?, ?)''', (key, value[0], value[1]))
-    # Сохраняем изменения и закрываем соединение
-    conn.commit()
-    conn.close()
-
-def insert_montly_anoms_into_db(numbers):
-    '''Занесение массива с ежемесячными аномалиями в базу данных'''
-    # Подключаемся к базе данных (если она не существует, она будет создана)
-    conn = sqlite3.connect('numbers.db')
-    cursor = conn.cursor()
-    # Вставляем данные в таблицу
-    for key, value in enumerate(numbers):
-        if 0 <= key <= 11:  # Проверяем, чтобы ключ был в нужном диапазоне
-            cursor.execute(f'''
-            INSERT OR REPLACE INTO montly_anomalies (id, anomaly_type, month) VALUES (?, ?)''', (key, value[0], value[1]))
-    # Сохраняем изменения и закрываем соединение
-    conn.commit()
-    conn.close()
-
+@app.route("/")
 def main():
-    ulr_adress = input()
-    prepare_database()
-    activs = get_acivities_from_dataset(ulr_adress)
-    anoms = find_amonalies(activs)
-    insert_activs_into_db(activs)
-    insert_anoms_into_db(anoms)
+    css_url = url_for("static", filename="style.css")
+    return render_template("index.html",
+                           css_url=css_url)
+
+@app.route("/autorith")
+def authorization():
+    css_url = url_for("static", filename="authstyle.css")
+    return render_template("autorith.html",
+                           css_url=css_url)
+
+
+@app.route('/api/auth/login', methods=["POST"])
+def authorization_proccess():
+    data = request.json
+    user = get_user(data["email"])
+
+    if user is None or user["password"] != data["password"]:
+        status = "Incorrect password or login"
+    else:
+        status = "Correct"
+
+
+    return jsonify({'status': status})
+
+@app.route("/analiswindow") # Имя файла без .html
+def analis_window_page():
+    # Если для этой страницы нужен свой CSS-файл, передай его так же
+    # css_url = url_for("static", filename="analiswindow_style.css")
+    # return render_template("analiswindow.html", css_url=css_url)
+    return render_template("analiswindow.html") # Если стили внутри <style> или не нужны отдельные
+
+
+@app.route('/api/anomalies', methods=["POST"])
+def find_anomalies_route():
+    if not MODEL_LOADED_SUCCESSFULLY:
+        return jsonify({"error": "ML Model or dependencies not loaded. Check server logs."}), 500
+
+    if not request.is_json or "csvDATA" not in request.json:
+        return jsonify({"error": "Missing 'csvDATA' in JSON payload"}), 400
     
-    if table_empty('anomalies'):
-        conn = sqlite3.connect('numbers.db')
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM anomalies")
-        rows = cursor.fetchall()
-        conn.close()
-        montly_activies = [sum(rows[1][30*i:30*(i+1)]) // 12  for i in range(12)]
-        montly_anoms = find_amonalies(montly_activies)
-        insert_montly_activs_into_db(montly_activies)
-        insert_montly_anoms_into_db(montly_anoms)
-        if table_empty('montly_anomalies'):
-            print('Никаких аномалий нет и не предвидется')
-            return
-        print('Никаких аномалий сейчас нет, но видны следующие сезонные аномалии:\n')
-        for key, value in montly_anoms:
-            if key == False:
-                print(f'Временная аномалия в {value} месяц')
-            else:
-                print(f'Хакерская аномалия в {value} месяц')
-        return
-    for key, value in anoms:
-        if key == False:
-            print(f'Временная аномалия в {value} месяц')
-        else:
-            print(f'Хакерская аномалия в {value} месяц')
-    return
+    data_str = request.json["csvDATA"]
+    csv_file = io.StringIO(data_str)
     
-main()
+    try:
+        df = pd.read_csv(csv_file)
+    except Exception as e:
+        app.logger.error(f"Error parsing CSV: {e}")
+        return jsonify({"error": f"Error parsing CSV data: {str(e)}"}), 400
+
+    if 'timestamp' not in df.columns or 'value' not in df.columns:
+        return jsonify({"error": "CSV must contain 'timestamp' and 'value' columns"}), 400
+
+    try:
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df.set_index('timestamp', inplace=True)
+        df['value'] = df['value'].astype(float)
+    except Exception as e:
+        app.logger.error(f"Error processing columns: {e}")
+        return jsonify({"error": f"Error processing timestamp or value columns: {str(e)}"}), 400
+    
+    if df.empty:
+        return jsonify({"error": "CSV data resulted in an empty DataFrame after parsing."}), 400
+        
+
+    try:
+        results_df = detect_anomalies_in_df(df)
+    except ValueError as ve:
+        app.logger.error(f"ValueError in detect_anomalies: {ve}")
+        return jsonify({"error": str(ve)}), 400
+    except RuntimeError as re:
+        app.logger.error(f"RuntimeError in detect_anomalies: {re}")
+        return jsonify({"error": str(re)}), 500
+    except Exception as e:
+        app.logger.error(f"Unexpected error in detect_anomalies: {e}", exc_info=True)
+        return jsonify({"error": "An internal error occurred during anomaly detection."}), 500
+
+    if results_df.empty:
+         return jsonify({
+             "anomalies_detected": [], 
+             "all_points_processed": [], 
+             "summary": {
+                "total_points_evaluated": 0,
+                "total_anomalies": 0,
+                "anomalies_by_mse": 0,
+                "anomalies_by_low_activity": 0
+             },
+             "message": "No data points were processed for anomalies (e.g. not enough data for sequences)."
+        })
+
+    results_df['timestamp'] = results_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    
+    anomalies_detected = results_df[results_df['is_anomaly']].to_dict(orient='records')
+    all_points_processed = results_df.to_dict(orient='records')
+
+    return jsonify({
+        "anomalies_detected": anomalies_detected,
+        "all_points_processed": all_points_processed,
+        "summary": {
+            "total_points_evaluated": len(results_df),
+            "total_anomalies": int(np.sum(results_df['is_anomaly'])),
+            "anomalies_by_mse": int(np.sum(results_df['is_anomaly_mse'])),
+            "anomalies_by_low_activity": int(np.sum(results_df['is_anomaly_low']))
+        }
+    })
+
+if __name__ == '__main__':
+    app.run(debug=True)
