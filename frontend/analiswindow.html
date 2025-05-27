@@ -1,10 +1,277 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8" />
+    <title>CSV Загрузчик и Анализатор</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: #ff6b00;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #666;
+            background-color: #f0f0f0;
+        }
+        #fileInput {
+            display: none;
+        }
+        #preview, #resultsArea {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            text-align: left;
+            width: 80%; /* Можно задать ширину для таблиц, чтобы они не были слишком широкими */
+            max-width: 700px; /* И максимальную ширину */
+            overflow-x: auto; /* Добавить горизонтальный скролл, если таблица шире */
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .preview-table th,
+        .preview-table td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd; /* Добавил рамку для всех ячеек для наглядности */
+        }
+        .preview-table th {
+            background-color: #f4f4f4;
+            /* display: block;  УДАЛЕНО */
+        }
+        .big-button {
+            background-color: #ff6b00;
+            color: #fff;
+            font-size: 20px;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            width: fit-content;
+            margin: 10px auto;
+            cursor: pointer;
+        }
+        #analyzeButton {
+            display: none;
+        }
+        #statusMessage {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <h2>Загрузка и анализ CSV файла</h2>
 
+    <div
+            class="upload-area"
+            id="uploadArea"
+            onclick="document.getElementById('fileInput').click()"
+    >
+        <p id="uploadText">Перетащите файл сюда или кликните для выбора</p>
+        <input type="file" id="fileInput" accept=".csv" style="display: none" />
+    </div>
+
+    <div id="preview"></div>
+    <div id="statusMessage"></div>
+
+    <button id="analyzeButton" class="big-button">Проанализировать!</button>
+
+    <div id="resultsArea"></div>
+
+</div>
+
+<script>
+    let csvFileContent = null;
+
+    const fileInput = document.getElementById("fileInput");
+    const previewDiv = document.getElementById("preview");
+    const analyzeButton = document.getElementById("analyzeButton");
+    const uploadArea = document.getElementById("uploadArea");
+    const uploadText = document.getElementById("uploadText");
+    const resultsArea = document.getElementById("resultsArea");
+    const statusMessage = document.getElementById("statusMessage");
+
+
+    fileInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        statusMessage.textContent = '';
+        resultsArea.innerHTML = '';
+        csvFileContent = null;
+        analyzeButton.style.display = "none";
+        previewDiv.innerHTML = ''; // Очищаем превью при выборе нового файла
+
+        if (file && (file.type === "text/csv" || file.name.toLowerCase().endsWith(".csv")) ) { // Более надежная проверка типа файла
+            uploadText.textContent = `Выбран файл: ${file.name}`;
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                csvFileContent = event.target.result;
+                const lines = csvFileContent.split(/\r\n|\n/).slice(0, 6); // Учитываем разные окончания строк
+
+                let tableHTML = '<table class="preview-table">';
+                if (lines.length > 0 && lines[0].trim() !== "") {
+                    tableHTML += `<thead><tr>${lines[0]
+                        .split(",")
+                        .map((cell) => `<th>${cell.trim()}</th>`)
+                        .join("")}</tr></thead>`;
+                    
+                    tableHTML += '<tbody>';
+                    for (let i = 1; i < lines.length; i++) {
+                        if (lines[i].trim() === "") continue;
+                        tableHTML += `<tr>${lines[i]
+                            .split(",")
+                            .map((cell) => `<td>${cell.trim()}</td>`)
+                            .join("")}</tr>`;
+                    }
+                    tableHTML += '</tbody>';
+                } else {
+                    tableHTML += "<tr><td>Файл пуст или неверный формат заголовка.</td></tr>";
+                }
+                tableHTML += "</table>";
+                previewDiv.innerHTML = `
+                    <h3>Предпросмотр данных (первые строки):</h3>
+                    ${tableHTML}
+                `;
+                analyzeButton.style.display = "block";
+            };
+
+            reader.onerror = function() {
+                previewDiv.innerHTML = "<p style='color: red;'>Ошибка при чтении файла.</p>";
+                csvFileContent = null;
+            }
+
+            reader.readAsText(file);
+        } else if (file) {
+            previewDiv.innerHTML = "<p style='color: red;'>Пожалуйста, выберите CSV файл.</p>";
+            uploadText.textContent = "Перетащите файл сюда или кликните для выбора";
+        }
+    });
+
+    analyzeButton.addEventListener("click", async function() {
+        if (!csvFileContent) {
+            statusMessage.textContent = "Сначала загрузите CSV файл.";
+            statusMessage.style.color = "red";
+            return;
+        }
+
+        statusMessage.textContent = "Идет анализ данных...";
+        statusMessage.style.color = "orange";
+        resultsArea.innerHTML = '';
+
+        try {
+            const response = await fetch('/api/anomalies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ csvDATA: csvFileContent }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({error: "Не удалось получить детали ошибки с сервера."}));
+                throw new Error(`Ошибка сервера: ${response.status}. ${errorData.error || ''}`);
+            }
+
+            const data = await response.json();
+            statusMessage.textContent = "Анализ завершен!";
+            statusMessage.style.color = "green";
+            displayResults(data);
+
+        } catch (error) {
+            console.error('Ошибка при отправке данных:', error);
+            statusMessage.textContent = `Ошибка: ${error.message}`;
+            statusMessage.style.color = "red";
+        }
+    });
+
+    function displayResults(data) {
+        let html = "<h3>Результаты анализа:</h3>";
+
+        if (data.error) {
+            html += `<p style="color: red;">Ошибка: ${data.error}</p>`;
+        } else if (data.message && (!data.anomalies_detected || data.anomalies_detected.length === 0) && (!data.all_points_processed || data.all_points_processed.length === 0)) { // Уточнил условие
+             html += `<p>${data.message}</p>`;
+        }
+        else {
+            html += "<p><strong>Сводка:</strong></p><ul>";
+            html += `<li>Всего обработано точек: ${data.summary.total_points_evaluated}</li>`;
+            html += `<li>Всего найдено аномалий: ${data.summary.total_anomalies}</li>`;
+            html += `<li>Аномалий по MSE: ${data.summary.anomalies_by_mse}</li>`;
+            html += `<li>Аномалий по низкой активности: ${data.summary.anomalies_by_low_activity}</li>`;
+            html += "</ul>";
+
+            if (data.anomalies_detected && data.anomalies_detected.length > 0) {
+                html += "<p><strong>Обнаруженные аномалии:</strong></p>";
+                // Заголовки для таблицы аномалий
+                html += '<table class="preview-table"><thead><tr><th>Timestamp</th><th>Actual Value</th><th>Predicted Value</th><th>MSE</th><th>Type</th></tr></thead><tbody>';
+                data.anomalies_detected.forEach(anomaly => {
+                    let type = [];
+                    if (anomaly.is_anomaly_mse) type.push("MSE");
+                    if (anomaly.is_anomaly_low) type.push("Low Activity");
+                    html += `<tr>
+                        <td>${anomaly.timestamp}</td>
+                        <td>${typeof anomaly.actual === 'number' ? anomaly.actual.toFixed(2) : anomaly.actual}</td>
+                        <td>${typeof anomaly.prediction === 'number' ? anomaly.prediction.toFixed(2) : anomaly.prediction}</td>
+                        <td>${typeof anomaly.mse === 'number' ? anomaly.mse.toFixed(4) : anomaly.mse}</td>
+                        <td>${type.join(", ")}</td>
+                    </tr>`;
+                });
+                html += "</tbody></table>";
+            } else if (data.summary && data.summary.total_points_evaluated > 0) { // Добавил проверку, что точки были, но аномалий нет
+                html += "<p>Аномалий не обнаружено среди обработанных точек.</p>";
+            } else if (!data.message) { // Если нет сообщения о нехватке данных
+                 html += "<p>Нет данных для отображения аномалий.</p>";
+            }
+        }
+        resultsArea.innerHTML = html;
+    }
+
+    uploadArea.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        uploadArea.style.borderColor = "#666";
+    });
+    uploadArea.addEventListener("dragleave", function(event) {
+        event.preventDefault();
+        uploadArea.style.borderColor = "#ccc";
+    });
+    uploadArea.addEventListener("drop", function(event) {
+        event.preventDefault();
+        uploadArea.style.borderColor = "#ccc";
+        if (event.dataTransfer.files.length) {
+            fileInput.files = event.dataTransfer.files;
+            const changeEvent = new Event('change');
+            fileInput.dispatchEvent(changeEvent);
+        }
+    });
+
+</script>
 </body>
 </html>
