@@ -8,7 +8,7 @@
 python -m venv venv
 ```
 
-Затем запустите в venv с помощью команды (windows):
+Затем запустите venv с помощью команды (windows):
 ```
 .\venv\Scripts\activate
 ```
